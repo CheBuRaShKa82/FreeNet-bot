@@ -36,7 +36,7 @@ bash <(curl -Ls https://raw.githubusercontent.com/CheBuRaShKa82/FreeNet-bot/main
 После установки управлять ботом очень просто. Просто введите следующую команду в терминале, чтобы открыть меню управления:
 
 ```bash
-sudo alamorbot
+sudo freenetbot
 ```
 Затем вы можете выбрать нужное действие через числовое меню:
 - **Просмотр состояния сервисов (Status)**
