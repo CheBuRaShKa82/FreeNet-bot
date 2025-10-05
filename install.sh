@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# AlamorVPN Bot Professional Installer & Manager v8.1 (Final)
+# FreeNet VPN Bot Professional Installer & Manager v8.1 (Final)
 # ==============================================================================
 
 # --- Color Codes ---
@@ -12,12 +12,12 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # --- Variables ---
-REPO_URL="https://github.com/AlamorNetwork/AlamorVPN_Bot.git"
-INSTALL_DIR="/var/www/alamorvpn_bot"
-BOT_SERVICE_NAME="alamorbot.service"
-WEBHOOK_SERVICE_NAME="alamor_webhook.service"
-SCRIPT_PATH_IN_INSTALL_DIR="/var/www/alamorvpn_bot/install.sh"
-COMMAND_PATH="/usr/local/bin/alamorbot"
+REPO_URL="https://github.com/CheBuRaShKa82/vless-bot.git"
+INSTALL_DIR="/home/freenet_bot"
+BOT_SERVICE_NAME="freenetbot.service"
+WEBHOOK_SERVICE_NAME="freenet_webhook.service"
+SCRIPT_PATH_IN_INSTALL_DIR="/home/freenet_bot/install.sh"
+COMMAND_PATH="/usr/local/bin/freenetbot"
 
 # --- Helper Functions ---
 print_success() { echo -e "\n${GREEN}✅ $1${NC}\n"; }
@@ -36,8 +36,8 @@ check_root() {
 # --- Main Logic Functions ---
 setup_database() {
     print_info "--- Starting PostgreSQL Database Setup ---"
-    read -p "$(echo -e ${YELLOW}"Please enter a name for the new database (e.g., alamor_db): "${NC})" db_name
-    read -p "$(echo -e ${YELLOW}"Please enter a username for the database (e.g., alamor_user): "${NC})" db_user
+    read -p "$(echo -e ${YELLOW}"Please enter a name for the new database (e.g., freenet_db): "${NC})" db_name
+    read -p "$(echo -e ${YELLOW}"Please enter a username for the database (e.g., freenet_user): "${NC})" db_user
     read -s -p "$(echo -e ${YELLOW}"Please enter a secure password for the database user: "${NC})" db_password
     echo ""
 
@@ -73,16 +73,16 @@ setup_env_file() {
     read -p "Press [Enter] to continue after you have saved the key."
 
     cat > .env <<- EOL
-BOT_TOKEN_ALAMOR="$bot_token"
-ADMIN_IDS_ALAMOR="[$admin_id]"
-BOT_USERNAME_ALAMOR="$bot_username"
-ENCRYPTION_KEY_ALAMOR="$encryption_key"
+BOT_TOKEN="$bot_token"
+ADMIN_IDS="[$admin_id]"
+BOT_USERNAME="$bot_username"
+ENCRYPTION_KEY="$encryption_key"
 EOL
     print_success ".env file created successfully."
 }
 
 create_system_command() {
-    print_info "Setting up the 'alamorbot' system command..."
+    print_info "Setting up the 'freenetbot' system command..."
     if [ ! -f "$SCRIPT_PATH_IN_INSTALL_DIR" ]; then
         print_error "install.sh not found in $INSTALL_DIR. Please run the full installation first."
         return 1
@@ -92,7 +92,7 @@ create_system_command() {
         sudo rm "$COMMAND_PATH"
     fi
     sudo ln -s "$SCRIPT_PATH_IN_INSTALL_DIR" "$COMMAND_PATH"
-    print_success "Command 'alamorbot' is now available system-wide."
+    print_success "Command 'freenetbot' is now available system-wide."
 }
 
 setup_ssl_and_nginx() {
@@ -100,7 +100,7 @@ setup_ssl_and_nginx() {
     read -p "$(echo -e ${YELLOW}"Please enter your domain (e.g., sub.yourdomain.com): "${NC})" payment_domain
     read -p "$(echo -e ${YELLOW}"Please enter a valid email for Let's Encrypt notifications: "${NC})" admin_email
     
-    NGINX_CONFIG_PATH="/etc/nginx/sites-available/alamor_webhook"
+    NGINX_CONFIG_PATH="/etc/nginx/sites-available/freenet_webhook"
 
     print_info "Step 1: Creating temporary Nginx configuration..."
     sudo tee "$NGINX_CONFIG_PATH" > /dev/null <<- EOL
@@ -157,7 +157,7 @@ setup_services() {
     print_info "Creating systemd services..."
     sudo tee /etc/systemd/system/$BOT_SERVICE_NAME > /dev/null <<- EOL
 [Unit]
-Description=Alamor VPN Telegram Bot
+Description=Freenet VPN Telegram Bot
 After=network.target
 [Service]
 User=root
@@ -172,7 +172,7 @@ EOL
     if grep -q "WEBHOOK_DOMAIN" .env; then
         sudo tee /etc/systemd/system/$WEBHOOK_SERVICE_NAME > /dev/null <<- EOL
 [Unit]
-Description=AlamorBot Webhook Server
+Description=FreenetBot Webhook Server
 After=network.target
 [Service]
 User=root
@@ -194,7 +194,7 @@ EOL
 
 install_bot() {
     check_root
-    print_info "Starting the complete installation of AlamorVPN Bot..."
+    print_info "Starting the complete installation of FreenetVPN Bot..."
     cd /root || { print_error "Cannot change to /root directory."; exit 1; }
 
     if [ -d "$INSTALL_DIR" ]; then
@@ -235,10 +235,10 @@ install_bot() {
     print_info "Step 7: Setting up persistent services..."
     setup_services
     
-    print_info "Step 8: Creating the 'alamorbot' management command..."
+    print_info "Step 8: Creating the 'freenetbot' management command..."
     create_system_command # <-- Corrected to call the function
     
-    print_success "Installation complete! You can now manage the bot by typing 'sudo alamorbot' in the terminal."
+    print_success "Installation complete! You can now manage the bot by typing 'sudo freenetbot' in the terminal."
 }
 
 update_bot() {
@@ -268,8 +268,8 @@ remove_bot_internal() {
     print_info "Removing Nginx config files..."
     DOMAIN_TO_REMOVE=$(grep 'WEBHOOK_DOMAIN' "$INSTALL_DIR/.env" 2>/dev/null | cut -d '=' -f2 | tr -d '"')
     if [ -n "$DOMAIN_TO_REMOVE" ]; then
-        sudo rm -f "/etc/nginx/sites-enabled/alamor_webhook"
-        sudo rm -f "/etc/nginx/sites-available/alamor_webhook"
+        sudo rm -f "/etc/nginx/sites-enabled/freenet_webhook"
+        sudo rm -f "/etc/nginx/sites-available/freenet_webhook"
         print_info "Attempting to remove SSL certificate for $DOMAIN_TO_REMOVE..."
         sudo certbot delete --cert-name "$DOMAIN_TO_REMOVE" --non-interactive
         sudo systemctl restart nginx 2>/dev/null
@@ -300,7 +300,7 @@ remove_bot() {
 show_main_menu() {
     clear
     echo -e "${BLUE}=====================================${NC}"
-    echo -e "${GREEN}      AlamorVPN Bot Manager        ${NC}"
+    echo -e "${GREEN}      FreenetVPN Bot Manager        ${NC}"
     echo -e "${BLUE}=====================================${NC}"
     echo " 1. Show Service Status"
     echo " 2. View Live Logs (Bot)"
