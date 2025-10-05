@@ -39,6 +39,8 @@ bash <(curl -Ls https://raw.githubusercontent.com/AlamorNetwork/AlamorVPN_Bot/ma
 Введите в терминале:
 ```bash
 sudo alamorbot
+```
+
 Доступные действия через меню:
 
 Просмотр состояния сервисов (Status)
