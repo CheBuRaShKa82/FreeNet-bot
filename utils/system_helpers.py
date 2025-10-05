@@ -6,9 +6,9 @@ import os
 logger = logging.getLogger(__name__)
 
 def run_shell_command(command):
-    """یک دستور شل را اجرا کرده و موفقیت یا شکست آن را برمی‌گرداند."""
+    """Выполняет команду оболочки и возвращает её успех или неудачу."""
     try:
-        # ما از sudo استفاده می‌کنیم چون nginx و certbot نیاز به دسترسی root دارند
+        # Мы используем sudo, так как nginx и certbot требуют прав root
         full_command = ['sudo'] + command
         result = subprocess.run(full_command, check=True, capture_output=True, text=True)
         logger.info(f"Command successful: {' '.join(command)}\nOutput: {result.stdout}")
@@ -20,12 +20,12 @@ def run_shell_command(command):
 
 def setup_domain_nginx_and_ssl(domain_name, admin_email):
     """
-    یک دامنه جدید را در Nginx تنظیم کرده و برای آن گواهی SSL از Certbot دریافت می‌کند.
+    Настраивает новый домен в Nginx и получает для него SSL-сертификат от Certbot.
     """
     nginx_config_path = f"/etc/nginx/sites-available/{domain_name}"
     nginx_enabled_path = f"/etc/nginx/sites-enabled/{domain_name}"
 
-    # مرحله ۱: ساخت کانفیگ موقت Nginx برای اعتبارسنجی Certbot
+    # Шаг 1: Создание временной конфигурации Nginx для проверки Certbot
     temp_nginx_config = f"""
 server {{
     listen 80;
@@ -42,12 +42,12 @@ server {{
         if not os.path.exists(nginx_enabled_path):
              run_shell_command(['ln', '-s', nginx_config_path, nginx_enabled_path])
 
-        # ریلود کردن Nginx برای اعمال کانفیگ موقت
+        # Перезагрузка Nginx для применения временной конфигурации
         success, _ = run_shell_command(['systemctl', 'reload', 'nginx'])
         if not success:
             raise Exception("Failed to reload Nginx with temporary config.")
 
-        # مرحله ۲: اجرای Certbot برای دریافت گواهی SSL
+        # Шаг 2: Выполнение Certbot для получения SSL-сертификата
         certbot_command = [
             'certbot', '--nginx', '-d', domain_name,
             '--email', admin_email, '--agree-tos', '--non-interactive', '--redirect'
@@ -56,9 +56,9 @@ server {{
         if not success:
             raise Exception(f"Certbot failed. Check DNS A record for {domain_name}. Error: {error}")
 
-        # مرحله ۳: ساخت کانفیگ نهایی Nginx برای Proxy Pass
-        # Certbot خودش کانفیگ را به روز می‌کند، ما فقط باید مطمئن شویم Proxy Pass اضافه شده
-        # برای سادگی، ما کانفیگ را بازنویسی می‌کنیم تا مطمئن شویم درست است
+        # Шаг 3: Создание финальной конфигурации Nginx для Proxy Pass
+        # Certbot сам обновляет конфигурацию, нам нужно только убедиться, что Proxy Pass добавлен
+        # Для простоты мы переписываем конфигурацию, чтобы убедиться, что она правильная
         final_nginx_config = f"""
 server {{
     listen 80;
@@ -87,7 +87,7 @@ server {{
             f.write(final_nginx_config)
         run_shell_command(['mv', f'/tmp/{domain_name}.conf', nginx_config_path])
 
-        # مرحله ۴: ریلود نهایی Nginx
+        # Шаг 4: Финальная перезагрузка Nginx
         success, _ = run_shell_command(['systemctl', 'reload', 'nginx'])
         if not success:
             raise Exception("Failed to reload Nginx with final config.")
@@ -95,15 +95,14 @@ server {{
         return True, "Domain setup and SSL certificate obtained successfully."
 
     except Exception as e:
-        # پاک‌سازی در صورت بروز خطا
+        # Очистка в случае ошибки
         run_shell_command(['rm', '-f', nginx_config_path])
         run_shell_command(['rm', '-f', nginx_enabled_path])
         run_shell_command(['systemctl', 'reload', 'nginx'])
         return False, str(e)
     
-    
 def remove_domain_nginx_files(domain_name):
-    """فایل‌های کانفیگ Nginx برای یک دامنه را حذف می‌کند."""
+    """Удаляет файлы конфигурации Nginx для указанного домена."""
     nginx_config_path = f"/etc/nginx/sites-available/{domain_name}"
     nginx_enabled_path = f"/etc/nginx/sites-enabled/{domain_name}"
     
@@ -112,20 +111,19 @@ def remove_domain_nginx_files(domain_name):
     success1, _ = run_shell_command(['rm', '-f', nginx_config_path])
     success2, _ = run_shell_command(['rm', '-f', nginx_enabled_path])
     
-    # ریلود کردن Nginx برای اعمال تغییرات
+    # Перезагрузка Nginx для применения изменений
     reload_success, error = run_shell_command(['systemctl', 'reload', 'nginx'])
     
     return (success1 or success2) and reload_success
 
-
 def check_ssl_certificate_exists(domain_name):
     """
-    بررسی می‌کند آیا گواهی SSL برای یک دامنه خاص در مسیر استاندارد Certbot وجود دارد یا خیر.
+    Проверяет, существует ли SSL-сертификат для указанного домена в стандартном пути Certbot.
     """
     cert_path = f"/etc/letsencrypt/live/{domain_name}/fullchain.pem"
     key_path = f"/etc/letsencrypt/live/{domain_name}/privkey.pem"
     
-    # os.path.exists نیاز به sudo ندارد و برای این بررسی کافی است
+    # os.path.exists не требует sudo и достаточно для этой проверки
     if os.path.exists(cert_path) and os.path.exists(key_path):
         logger.info(f"SSL certificate found for domain {domain_name}.")
         return True
@@ -133,18 +131,16 @@ def check_ssl_certificate_exists(domain_name):
         logger.warning(f"SSL certificate NOT found for domain {domain_name}.")
         return False
     
-    
-    
 def run_shell_command(command):
     """
-    یک دستور شل را با دسترسی sudo اجرا کرده و نتیجه کامل آن را برمی‌گرداند.
+    Выполняет команду оболочки с доступом sudo и возвращает полный результат.
     """
     try:
         full_command = ['sudo'] + command
-        # check=False باعث می‌شود حتی در صورت بروز خطا، برنامه متوقف نشود
+        # check=False позволяет программе не останавливаться даже в случае ошибки
         result = subprocess.run(full_command, check=False, capture_output=True, text=True, encoding='utf-8')
         
-        # ترکیب خروجی استاندارد و خروجی خطا
+        # Сочетание стандартного вывода и вывода ошибок
         output = result.stdout + result.stderr
         
         if result.returncode == 0:

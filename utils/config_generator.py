@@ -1,4 +1,4 @@
-# utils/config_generator.py (نسخه نهایی با معماری دریافت از ساب پنل)
+# utils/config_generator.py (Финальная версия с архитектурой получения из панели подписки)
 
 import json
 import logging
@@ -27,8 +27,8 @@ class ConfigGenerator:
         return self._build_configs(user_telegram_id, inbounds, total_gb, duration_days, custom_remark)
 
     def create_subscription_for_server(self, user_telegram_id: int, server_id: int, total_gb: float, duration_days: int, custom_remark: str = None):
-        # --- اصلاح اصلی اینجاست ---
-        # نام تابع اشتباه به نام صحیح تغییر کرد
+        # --- Основное исправление здесь ---
+        # Название функции было исправлено на правильное
         inbounds = self.db_manager.get_active_inbounds_for_server_with_template(server_id)
         
         return self._build_configs(user_telegram_id, inbounds, total_gb, duration_days, custom_remark)
@@ -65,7 +65,7 @@ class ConfigGenerator:
                 inbound_id = s_inbound['inbound_id']
                 client_uuid = str(uuid.uuid4())
                 
-                # استفاده از برندینگ در نام کلاینت
+                # Использование брендинга в имени клиента
                 brand_name = self.db_manager.get_setting('brand_name') or "Alamor"
                 client_name = f"{brand_name}-{user_telegram_id}"
                 
@@ -78,7 +78,7 @@ class ConfigGenerator:
                     "enable": True, 
                     "tgId": str(user_telegram_id), 
                     "subId": shared_sub_id,
-                    "name": client_name  # اضافه کردن نام کلاینت با برندینگ
+                    "name": client_name  # Добавление имени клиента с брендингом
                 }
                 
                 add_client_payload = {"id": inbound_id, "settings": json.dumps({"clients": [client_settings]})}
@@ -97,14 +97,14 @@ class ConfigGenerator:
                 response = requests.get(panel_sub_url, timeout=20, verify=False)
                 response.raise_for_status()
                 
-                # --- اصلاح اصلی و نهایی اینجاست ---
+                # --- Основное и финальное исправление здесь ---
                 decoded_content = ""
                 try:
-                    # تلاش برای دیکود کردن به عنوان Base64 (برای پنل سنایی)
+                    # Попытка декодирования как Base64 (для панели Sanaei)
                     decoded_content = base64.b64decode(response.content).decode('utf-8')
                     logger.info(f"Successfully decoded Base64 subscription from server {server_data['name']}.")
                 except Exception:
-                    # اگر دیکود Base64 شکست خورد، فرض می‌کنیم متن خام است (برای پنل علیرضا)
+                    # Если декодирование Base64 не удалось, предполагаем, что это обычный текст (для панели Alireza)
                     logger.info(f"Could not decode as Base64. Assuming plain text response from server {server_data['name']}.")
                     decoded_content = response.text
 
@@ -119,7 +119,7 @@ class ConfigGenerator:
                 logger.error(f"Error fetching/parsing panel subscription for server {server_id}: {e}")
 
         final_remarked_configs = []
-        # کد اصلاح شده و دقیق‌تر
+        # Код исправлен и более точный
         brand_name = self.db_manager.get_setting('brand_name') or "Alamor"
         final_remark_str = custom_remark if custom_remark else f"{brand_name}-{user_telegram_id}"
         for config in all_final_configs:

@@ -3,10 +3,8 @@ import os
 from dotenv import load_dotenv
 from database.db_manager import DatabaseManager
 
-# بارگذاری متغیرهای محیطی
 load_dotenv()
 
-# تنظیمات لاگ برای دیدن خروجی
 logging.basicConfig(level=logging.INFO)
 
 db_type = os.getenv("DB_TYPE", "sqlite")
@@ -25,5 +23,5 @@ except Exception as e:
         print("3. Ensure the database exists and user has proper permissions")
     else:
         print("1. Make sure the database directory exists")
-        print("2. Check your DATABASE_NAME_ALAMOR in .env file")
+        print("2. Check your DATABASE_NAME in .env file")
         print("3. Ensure write permissions to the database directory")

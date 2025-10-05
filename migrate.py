@@ -5,16 +5,15 @@ import os
 from dotenv import load_dotenv
 from database.db_manager import DatabaseManager
 
-# بارگذاری متغیرهای محیطی
+# Загрузка переменных окружения
 load_dotenv()
 
-# تنظیمات اولیه برای نمایش لاگ‌ها در ترمینال
+# Начальные настройки для отображения логов в терминале
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def run_migrations():
     """
-    اسکریپت را برای اعمال تغییرات اسکیمای دیتابیس اجرا می‌کند.
-    این اسکریپت به گونه‌ای طراحی شده که اجرای چندباره آن مشکلی ایجاد نکند.
+    Выполняет скрипт для применения изменений схемы базы данных. Этот скрипт спроектирован так, что многократное выполнение не вызывает проблем.
     """
     logging.info("Starting database migration script...")
     
@@ -30,7 +29,7 @@ def run_migrations():
         if db_type == "postgres":
             logging.info("Successfully connected to the PostgreSQL database.")
             
-            # لیست دستورات SQL برای PostgreSQL
+            # Список команд SQL для PostgreSQL
             migrations = [
                 """
                 ALTER TABLE server_inbounds 
@@ -44,7 +43,7 @@ def run_migrations():
         else:
             logging.info("Successfully connected to the SQLite database.")
             
-            # لیست دستورات SQL برای SQLite
+            # Список команд SQL для SQLite
             migrations = [
                 """
                 ALTER TABLE server_inbounds 
@@ -63,17 +62,17 @@ def run_migrations():
                     cur.execute(migration_sql)
                     logging.info(f"Migration #{i} applied successfully.")
                 except Exception as e:
-                    # در SQLite، اگر ستون قبلاً وجود داشته باشد، خطا می‌دهد
+                    # В SQLite, если столбец уже существует, выдаёт ошибку
                     if db_type == "sqlite" and "duplicate column name" in str(e).lower():
                         logging.info(f"Column already exists in SQLite. Skipping migration #{i}.")
                     else:
                         logging.error(f"Error applying migration #{i}: {e}")
-                        # در صورت بروز خطا، تغییرات را به حالت قبل برمی‌گردانیم
+                        # В случае ошибки, откатываем изменения
                         if db_type == "postgres":
                             conn.rollback()
                         return
 
-        # اگر تمام دستورات موفقیت‌آمیز بودند، تغییرات را نهایی می‌کنیم
+        # Если все команды выполнены успешно, фиксируем изменения
         if db_type == "postgres":
             conn.commit()
         else:

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="ru" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ابزار مقایسه کانفیگ VLESS</title>
+    <title>Инструмент сравнения конфигураций VLESS</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -90,14 +90,14 @@
 <body>
 
     <div class="container">
-        <h1>ابزار مقایسه کانفیگ VLESS</h1>
+        <h1>Инструмент сравнения конфигураций VLESS</h1>
         
         <div class="input-grid">
-            <textarea id="config1" placeholder="کانفیگ اول را اینجا پیست کنید..."></textarea>
-            <textarea id="config2" placeholder="کانفیگ دوم را اینجا پیست کنید..."></textarea>
+            <textarea id="config1" placeholder="Вставьте первую конфигурацию сюда..."></textarea>
+            <textarea id="config2" placeholder="Вставьте вторую конфигурацию сюда..."></textarea>
         </div>
         
-        <button onclick="compareConfigs()">مقایسه کن</button>
+        <button onclick="compareConfigs()">Сравнить</button>
         
         <div id="results"></div>
     </div>
@@ -138,13 +138,13 @@
 
             const resultsDiv = document.getElementById('results');
             if (!config1 || !config2) {
-                resultsDiv.innerHTML = '<p style="color: #cf6679;">خطا: لطفاً هر دو کانفیگ را با فرمت صحیح vless:// وارد کنید.</p>';
+                resultsDiv.innerHTML = '<p style="color: #cf6679;">Ошибка: Пожалуйста, введите обе конфигурации в правильном формате vless://.</p>';
                 return;
             }
 
             const allKeys = new Set([...Object.keys(config1), ...Object.keys(config2)]);
             
-            let tableHTML = '<table><thead><tr><th>پارامتر</th><th>کانفیگ اول</th><th>کانفیگ دوم</th></tr></thead><tbody>';
+            let tableHTML = '<table><thead><tr><th>Параметр</th><th>Первая конфигурация</th><th>Вторая конфигурация</th></tr></thead><tbody>';
 
             const sortedKeys = Array.from(allKeys).sort();
 

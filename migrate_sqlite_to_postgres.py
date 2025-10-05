@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-اسکریپت مهاجرت کامل از SQLite به PostgreSQL
-این اسکریپت تمام داده‌ها را از دیتابیس SQLite به PostgreSQL منتقل می‌کند.
+Скрипт полного переноса из SQLite в PostgreSQL. Этот скрипт переносит все данные из базы данных SQLite в PostgreSQL.
 """
 
 import sqlite3
@@ -14,10 +13,10 @@ import os
 import sys
 from dotenv import load_dotenv
 
-# بارگذاری متغیرهای محیطی
+# Загрузка переменных окружения
 load_dotenv()
 
-# تنظیمات لاگ
+# Настройки логов
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -28,16 +27,16 @@ logging.basicConfig(
 )
 
 def check_environment():
-    """بررسی تنظیمات محیطی"""
+    """Проверка настроек окружения"""
     logging.info("🔍 Checking environment configuration...")
     
-    # بررسی نوع دیتابیس
+    # Проверка типа базы данных
     db_type = os.getenv("DB_TYPE", "sqlite")
     if db_type != "postgres":
         logging.error("❌ DB_TYPE must be set to 'postgres' for migration")
         return False
     
-    # بررسی متغیرهای PostgreSQL
+    # Проверка переменных PostgreSQL
     pg_vars = {
         "DB_NAME": os.getenv("DB_NAME"),
         "DB_USER": os.getenv("DB_USER"),
@@ -51,8 +50,8 @@ def check_environment():
         logging.error(f"❌ Missing PostgreSQL environment variables: {', '.join(missing_vars)}")
         return False
     
-    # بررسی وجود فایل SQLite
-    sqlite_path = os.getenv("DATABASE_NAME_ALAMOR", "database/alamor_vpn.db")
+    # Проверка наличия файла SQLite
+    sqlite_path = os.getenv("DATABASE_NAME", "database/freenet_vpn.db")
     if not os.path.exists(sqlite_path):
         logging.error(f"❌ SQLite database file not found: {sqlite_path}")
         return False
@@ -61,11 +60,11 @@ def check_environment():
     return True
 
 def test_connections():
-    """تست اتصال به هر دو دیتابیس"""
+    """Тестирование подключения к обеим базам данных"""
     logging.info("🔌 Testing database connections...")
     
-    # تست اتصال SQLite
-    sqlite_path = os.getenv("DATABASE_NAME_ALAMOR", "database/alamor_vpn.db")
+    # Тестирование подключения SQLite
+    sqlite_path = os.getenv("DATABASE_NAME", "database/freenet_vpn.db")
     try:
         sqlite_conn = sqlite3.connect(sqlite_path)
         sqlite_conn.close()
@@ -74,7 +73,7 @@ def test_connections():
         logging.error(f"❌ SQLite connection failed: {e}")
         return False
     
-    # تست اتصال PostgreSQL
+    # Тестирование подключения PostgreSQL
     pg_config = {
         "dbname": os.getenv("DB_NAME"),
         "user": os.getenv("DB_USER"),
@@ -94,7 +93,7 @@ def test_connections():
     return True
 
 def get_table_info(sqlite_conn):
-    """دریافت اطلاعات جداول SQLite"""
+    """Получение информации о таблицах SQLite"""
     cursor = sqlite_conn.cursor()
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
     tables = [row[0] for row in cursor.fetchall()]
@@ -103,52 +102,45 @@ def get_table_info(sqlite_conn):
     for table in tables:
         cursor.execute(f"PRAGMA table_info({table})")
         columns = cursor.fetchall()
-        table_info[table] = [col[1] for col in columns]  # نام ستون‌ها
+        table_info[table] = [col[1] for col in columns]  # Имена столбцов
     
     return table_info
 
 def migrate_table(sqlite_conn, pg_conn, table_name, columns):
-    """مهاجرت یک جدول"""
+    """Перенос одной таблицы"""
     logging.info(f"📦 Migrating table: {table_name}")
     
-    # خواندن داده‌ها از SQLite
-    sqlite_cursor = sqlite_conn.cursor()
-    sqlite_cursor.execute(f"SELECT * FROM {table_name}")
-    rows = sqlite_cursor.fetchall()
-    
-    if not rows:
-        logging.info(f"   Table '{table_name}' is empty, skipping")
-        return True
-    
-    # آماده‌سازی کوئری PostgreSQL
-    placeholders = ', '.join(['%s'] * len(columns))
-    pg_query = f"INSERT INTO {table_name} ({', '.join(columns)}) VALUES ({placeholders})"
-    
-    # تبدیل داده‌ها
-    data_to_insert = []
-    for row in rows:
-        # تبدیل None به NULL برای PostgreSQL
-        converted_row = [None if val is None else val for val in row]
-        data_to_insert.append(tuple(converted_row))
-    
-    # درج داده‌ها در PostgreSQL
-    pg_cursor = pg_conn.cursor()
     try:
-        pg_cursor.executemany(pg_query, data_to_insert)
+        sqlite_cursor = sqlite_conn.cursor()
+        sqlite_cursor.execute(f"SELECT * FROM {table_name}")
+        rows = sqlite_cursor.fetchall()
+        
+        if not rows:
+            logging.info(f"   ℹ️ Table '{table_name}' is empty. Skipping.")
+            return True
+        
+        pg_cursor = pg_conn.cursor()
+        placeholders = ', '.join(['%s'] * len(columns))
+        insert_query = f"INSERT INTO {table_name} ({', '.join(columns)}) VALUES ({placeholders})"
+        
+        data = [tuple(row) for row in rows]
+        pg_cursor.executemany(insert_query, data)
+        
         logging.info(f"   ✅ Migrated {len(rows)} rows to '{table_name}'")
         return True
+        
     except Exception as e:
         logging.error(f"   ❌ Failed to migrate '{table_name}': {e}")
         return False
 
 def reset_sequences(pg_conn, tables):
-    """تنظیم مجدد sequence ها"""
+    """Сброс последовательностей"""
     logging.info("🔄 Resetting PostgreSQL sequences...")
     
     pg_cursor = pg_conn.cursor()
     for table in tables:
         try:
-            # بررسی وجود ستون id
+            # Проверка наличия столбца id
             pg_cursor.execute(f"""
                 SELECT column_name FROM information_schema.columns 
                 WHERE table_name = '{table}' AND column_name = 'id'
@@ -163,19 +155,19 @@ def reset_sequences(pg_conn, tables):
             logging.warning(f"   ⚠️ Could not reset sequence for '{table}': {e}")
 
 def main():
-    """تابع اصلی مهاجرت"""
+    """Основная функция переноса"""
     logging.info("🚀 Starting SQLite to PostgreSQL migration...")
     
-    # بررسی محیط
+    # Проверка окружения
     if not check_environment():
         sys.exit(1)
     
-    # تست اتصالات
+    # Тестирование подключений
     if not test_connections():
         sys.exit(1)
     
-    # اتصال به دیتابیس‌ها
-    sqlite_path = os.getenv("DATABASE_NAME_ALAMOR", "database/alamor_vpn.db")
+    # Подключение к базам данных
+    sqlite_path = os.getenv("DATABASE_NAME", "database/freenet_vpn.db")
     pg_config = {
         "dbname": os.getenv("DB_NAME"),
         "user": os.getenv("DB_USER"),
@@ -188,20 +180,20 @@ def main():
         sqlite_conn = sqlite3.connect(sqlite_path)
         pg_conn = psycopg2.connect(**pg_config)
         
-        # دریافت اطلاعات جداول
+        # Получение информации о таблицах
         table_info = get_table_info(sqlite_conn)
         logging.info(f"📋 Found {len(table_info)} tables in SQLite")
         
-        # ترتیب مهاجرت (برای رعایت foreign keys)
+        # Порядок миграции (для соблюдения foreign keys)
         migration_order = [
             'users', 'settings', 'servers', 'plans', 'server_inbounds',
             'payment_gateways', 'free_test_usage', 'payments', 'purchases', 'tutorials'
         ]
         
-        # فیلتر کردن جداول موجود
+        # Фильтрация существующих таблиц
         tables_to_migrate = [t for t in migration_order if t in table_info]
         
-        # شروع مهاجرت
+        # Начало миграции
         success_count = 0
         for table in tables_to_migrate:
             if migrate_table(sqlite_conn, pg_conn, table, table_info[table]):
@@ -212,10 +204,10 @@ def main():
                 break
         
         if success_count == len(tables_to_migrate):
-            # تنظیم مجدد sequence ها
+            # Сброс последовательностей
             reset_sequences(pg_conn, tables_to_migrate)
             
-            # commit تغییرات
+            # Фиксация изменений
             pg_conn.commit()
             logging.info("🎉 Migration completed successfully!")
             logging.info(f"📊 Migrated {success_count}/{len(tables_to_migrate)} tables")

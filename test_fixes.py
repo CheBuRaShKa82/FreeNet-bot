@@ -123,7 +123,7 @@ def test_webhook_functions():
 
 def main():
     """Run all tests"""
-    print("🧪 Running tests for AlamorVPN Bot fixes...\n")
+    print("🧪 Running tests for FreeNet VPN Bot fixes...\n")
     
     # Test 1: calculate_days_remaining function
     try:

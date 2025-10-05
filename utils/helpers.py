@@ -1,11 +1,11 @@
-# utils/helpers.py (نسخه کامل و اصلاح شده)
+# utils/helpers.py (Полная и исправленная версия)
 
 import telebot
 import logging
 import random
 import string
 import re
-# --- ایمپورت‌های جدید در اینجا اضافه شده‌اند ---
+# --- Новые импорты добавлены здесь ---
 from urllib.parse import urlparse, parse_qs
 from database.db_manager import DatabaseManager
 import utils.messages as messages_module
@@ -20,7 +20,6 @@ class _SafeFormatDict(UserDict):
     def __missing__(self, key):
         # Leave unknown placeholders intact like {unknown}
         return '{' + key + '}'
-
 
 def get_message(key: str, **kwargs):
     """Fetches a message template by key (DB overrides > defaults) and safely formats it.
@@ -42,10 +41,11 @@ def get_message(key: str, **kwargs):
         except Exception:
             # As a last resort, return unformatted template to avoid crashes
             return default_template
-# --- تابع جدید در اینجا اضافه شده است ---
+
+# --- Новая функция добавлена здесь ---
 def parse_config_link(link: str) -> dict or None:
     """
-    یک لینک کانفیگ vless را تجزیه کرده و به صورت یک دیکشنری ساختاریافته برمی‌گرداند.
+    Разбирает ссылку конфигурации VLESS и возвращает её в виде структурированного словаря.
     """
     try:
         if not link.startswith("vless://"):
@@ -53,7 +53,7 @@ def parse_config_link(link: str) -> dict or None:
 
         parsed_url = urlparse(link)
         
-        # استخراج پارامترهای اصلی
+        # Извлечение основных параметров
         params = {
             "protocol": parsed_url.scheme,
             "uuid": parsed_url.username,
@@ -62,10 +62,10 @@ def parse_config_link(link: str) -> dict or None:
             "remark": parsed_url.fragment
         }
         
-        # استخراج تمام پارامترهای کوئری
+        # Извлечение всех параметров запроса
         query_params = parse_qs(parsed_url.query)
         for key, value in query_params.items():
-            # parse_qs مقادیر را به صورت لیست برمی‌گرداند، ما اولین مقدار را می‌خواهیم
+            # parse_qs возвращает значения в виде списка, нам нужно первое значение
             params[key] = value[0]
             
         return params
@@ -73,15 +73,13 @@ def parse_config_link(link: str) -> dict or None:
         logger.error(f"Failed to parse config link '{link}': {e}")
         return None
 
-
 def is_admin(user_id: int) -> bool:
-    """بررسی می‌کند که آیا کاربر ادمین است یا خیر."""
+    """Проверяет, является ли пользователь администратором."""
     return user_id in ADMIN_IDS
-
 
 def is_user_member_of_channel(bot: telebot.TeleBot, channel_id: int, user_id: int) -> bool:
     """
-    بررسی می‌کند که آیا کاربر در کانال مورد نظر عضو است یا خیر.
+    Проверяет, является ли пользователь членом указанного канала.
     """
     if channel_id is None:
         return True
@@ -93,10 +91,9 @@ def is_user_member_of_channel(bot: telebot.TeleBot, channel_id: int, user_id: in
         logger.error(f"Error checking user {user_id} membership in channel {channel_id}: {e}")
         return True
 
-
 def is_float_or_int(value) -> bool:
     """
-    بررسی می‌کند که آیا یک رشته می‌تواند به float یا int تبدیل شود یا خیر.
+    Проверяет, можно ли преобразовать строку в float или int.
     """
     try:
         float(value)
@@ -104,10 +101,9 @@ def is_float_or_int(value) -> bool:
     except (ValueError, TypeError):
         return False
 
-
 def escape_markdown_v1(text: str) -> str:
     """
-    کاراکترهای خاص Markdown V1 را برای جلوگیری از خطا در پارس کردن، Escape می‌کند.
+    Экранирует специальные символы Markdown V1, чтобы избежать ошибок при парсинге.
     """
     escape_chars = r'_*`[]()~>#+-=|{}!.'
 
@@ -116,18 +112,16 @@ def escape_markdown_v1(text: str) -> str:
 
     return text.translate(str.maketrans({c: f'\\{c}' for c in escape_chars}))
 
-
 def generate_random_string(length=10) -> str:
     """
-    یک رشته تصادفی از حروف کوچک و اعداد به طول مشخص تولید می‌کند.
+    Генерирует случайную строку из строчных букв и цифр заданной длины.
     """
     characters = string.ascii_lowercase + string.digits
     return ''.join(random.choice(characters) for i in range(length))
 
-
 def normalize_panel_inbounds(panel_type, raw_inbounds):
     """
-    اطلاعات خام اینباندها از پنل‌های مختلف را گرفته و به یک فرمت استاندارد و یکسان تبدیل می‌کند.
+    Принимает необработанные данные inbound'ов из разных панелей и преобразует их в стандартный единый формат.
     """
     if not raw_inbounds:
         return []
@@ -147,9 +141,8 @@ def normalize_panel_inbounds(panel_type, raw_inbounds):
 
     return normalized_list
 
-
 def update_env_file(key_to_update, new_value):
-    """یک متغیر خاص را در فایل .env آپدیت یا اضافه می‌کند."""
+    """Обновляет или добавляет определённую переменную в файл .env."""
     env_path = '.env'
     try:
         with open(env_path, 'r') as file:
@@ -173,7 +166,7 @@ def update_env_file(key_to_update, new_value):
 
 def format_traffic_size(bytes_value):
     """
-    تبدیل حجم از بایت به فرمت خوانا
+    Преобразует объём из байтов в читаемый формат
     """
     if bytes_value is None or bytes_value == 0:
         return "0 B"
@@ -192,7 +185,7 @@ def format_traffic_size(bytes_value):
 
 def calculate_days_remaining(expire_date):
     """
-    محاسبه تعداد روزهای باقی‌مانده - نسخه ساده و مطمئن
+    Расчёт оставшихся дней - простая и надёжная версия
     """
     if not expire_date:
         return None
@@ -200,23 +193,23 @@ def calculate_days_remaining(expire_date):
     from datetime import datetime
     
     try:
-        # تبدیل expire_date به datetime
+        # Преобразование expire_date в datetime
         if isinstance(expire_date, str):
             expire_date = datetime.strptime(expire_date, '%Y-%m-%d %H:%M:%S')
         
-        # حذف timezone اگر وجود دارد
+        # Удаление часового пояса, если он есть
         if hasattr(expire_date, 'tzinfo') and expire_date.tzinfo is not None:
             expire_date = expire_date.replace(tzinfo=None)
         elif hasattr(expire_date, 'replace'):
-            # اگر replace method دارد، timezone را حذف کنیم
+            # Если есть метод replace, удаляем часовой пояс
             expire_date = expire_date.replace(tzinfo=None)
         
-        # محاسبه تفاوت با datetime.now() بدون timezone
+        # Расчёт разницы с datetime.now() без часового пояса
         now = datetime.now()
         days_remaining = (expire_date - now).days
         return days_remaining
         
     except Exception as e:
-        # در صورت بروز خطا، None برمی‌گردانیم
+        # В случае ошибки возвращаем None
         print(f"Error in calculate_days_remaining: {e}")
         return None

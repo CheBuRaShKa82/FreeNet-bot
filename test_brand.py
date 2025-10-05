@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 from database.db_manager import DatabaseManager
 
 def test_brand_name():

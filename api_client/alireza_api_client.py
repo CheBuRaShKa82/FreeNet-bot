@@ -4,24 +4,25 @@ import requests
 import logging
 import json
 
-# غیرفعال کردن هشدارهای مربوط به SSL
+# Отключение предупреждений, связанных с SSL
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 logger = logging.getLogger(__name__)
 
 class AlirezaAPIClient:
-    def __init__(self, panel_url = 'https://pay.alamornetwork.ir:2053/C2v8tOan9RYt5E9', username = 'sirius', password = '22331144'):
+    def __init__(self, panel_url='https://pay.alamornetwork.ir:2053/C2v8tOan9RYt5E9', username='sirius', password='22331144'):
         self.base_url = panel_url.rstrip('/')
         self.username = username
         self.password = password
         self.session = requests.Session()
         self.session.headers.update({'Accept': 'application/json'})
         self.is_logged_in = False
-        self.api_base_path = "/xui/API/inbounds" # مسیر استاندارد علیرضا
+        self.api_base_path = "/xui/API/inbounds"  # Стандартный путь для Alireza
         logger.info(f"AlirezaAPIClient initialized for {self.base_url}")
+
     def _request(self, method, path, **kwargs):
-        """یک متد مرکزی برای ارسال تمام درخواست‌ها."""
+        """Центральный метод для отправки всех запросов."""
         if not path.startswith('/'):
             path = '/' + path
         
@@ -67,7 +68,7 @@ class AlirezaAPIClient:
             return False
 
     def check_login(self):
-        """بررسی اعتبار لاگین."""
+        """Проверка действительности входа."""
         if self.is_logged_in:
             return True
         return self.login()
@@ -79,13 +80,13 @@ class AlirezaAPIClient:
         if response_data and response_data.get('success'):
             return True
         
-        # --- بخش جدید برای لاگ کردن خطای پنل ---
+        # --- Новый раздел для логирования ошибок панели ---
         error_msg = response_data.get('msg', 'Unknown error from panel') if response_data else "No response from panel"
         logger.error(f"AlirezaPanel: Failed to add client. Panel response: '{error_msg}'")
         return False
 
     def get_inbound(self, inbound_id):
-        """اطلاعات یک اینباند خاص را دریافت می‌کند."""
+        """Получает информацию о конкретном inbound."""
         full_path = f"{self.api_base_path}/get/{inbound_id}"
         response_data = self._request('get', full_path)
         if response_data and response_data.get('success'):
@@ -126,17 +127,17 @@ class AlirezaAPIClient:
             logger.error("Not logged in to Alireza panel. Cannot get client info.")
             return None
         
-        # ابتدا تمام inbounds را دریافت می‌کنیم
+        # Сначала получаем все inbounds
         inbounds = self.list_inbounds()
         if not inbounds:
             return None
         
-        # در تمام inbounds دنبال کلاینت می‌گردیم
+        # Ищем клиента во всех inbounds
         for inbound in inbounds:
             if 'settings' in inbound and 'clients' in inbound['settings']:
                 for client in inbound['settings']['clients']:
                     if client.get('id') == client_id or client.get('email') == client_id:
-                        # اطلاعات ترافیک را هم اضافه می‌کنیم
+                        # Добавляем информацию о трафике
                         traffic_info = self.get_client_traffic_by_id(client_id)
                         if traffic_info:
                             client.update(traffic_info)
@@ -144,6 +145,3 @@ class AlirezaAPIClient:
         
         logger.warning(f"Client with ID {client_id} not found")
         return None
-    
-    
-    

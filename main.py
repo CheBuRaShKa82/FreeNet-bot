@@ -64,10 +64,10 @@ def send_welcome(message):
         admin_welcome = messages.ADMIN_WELCOME.format(brand_name=brand_name)
         bot.send_message(user_id, admin_welcome, reply_markup=inline_keyboards.get_admin_main_inline_menu())
     else:
-        # نام برند را از دیتابیس می‌خوانیم و یک نام پیش‌فرض برای آن در نظر می‌گیریم
+        # Читаем название бренда из базы данных и задаём для него значение по умолчанию
         brand_name = db_manager.get_setting('brand_name') or "FreeNet VPN"
         
-        # نام برند را به تابع ارسال پیام اضافه می‌کنیم
+        # Добавляем название бренда в функцию отправки сообщения
         welcome_text = messages.START_WELCOME.format(brand_name=brand_name, first_name=first_name)
         user_menu_markup = inline_keyboards.get_user_main_inline_menu(support_link)
         bot.send_message(user_id, welcome_text, parse_mode='Markdown', reply_markup=user_menu_markup)

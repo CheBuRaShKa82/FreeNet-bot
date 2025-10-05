@@ -1,4 +1,4 @@
-# config.py (نسخه نهایی با عیب‌یابی پیشرفته)
+# config.py (Финальная версия с продвинутой отладкой)
 
 import os
 import re
@@ -7,105 +7,104 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # =============================================================================
-# SECTION: عیب‌یابی پیشرفته فایل .env
+# SECTION: Продвинутая отладка файла .env
 # =============================================================================
-print("\n--- شروع عیب‌یابی فایل .env ---")
+print("\n--- Начало отладки файла .env ---")
 env_path = Path(__file__).parent.resolve() / '.env'
-print(f"1. مسیر مطلق مورد انتظار برای فایل .env:\n   {env_path}")
+print(f"1. Ожидаемый абсолютный путь для файла .env:\n   {env_path}")
 
-# --- بررسی مرحله ۱: آیا فایل وجود دارد؟ ---
+# --- Проверка шага 1: Существует ли файл? ---
 if not env_path.exists():
-    print("\n2. ❌ نتیجه: ناموفق!")
-    print("   علت: فایل .env در مسیر بالا وجود ندارد.")
-    print("   راه‌حل: مطمئن شوید فایلی با نام دقیقاً '.env' (با نقطه در ابتدا) در پوشه اصلی پروژه قرار دارد.")
-    sys.exit(1) # خروج از برنامه
-print("2. ✅ نتیجه: فایل .env پیدا شد.")
+    print("\n2. ❌ Результат: Неудача!")
+    print("   Причина: Файл .env не существует по указанному пути.")
+    print("   Решение: Убедитесь, что файл с точным именем '.env' (с точкой в начале) находится в корневой папке проекта.")
+    sys.exit(1) # Выход из программы
+print("2. ✅ Результат: Файл .env найден.")
 
-# --- بررسی مرحله ۲: آیا یک فایل است (و نه پوشه)؟ ---
+# --- Проверка шага 2: Является ли это файлом (а не папкой)? ---
 if not env_path.is_file():
-    print("\n3. ❌ نتیجه: ناموفق!")
-    print("   علت: مسیر پیدا شده یک فایل نیست، بلکه یک پوشه است.")
-    sys.exit(1) # خروج از برنامه
-print("3. ✅ نتیجه: مسیر یافت شده یک فایل است.")
+    print("\n3. ❌ Результат: Неудача!")
+    print("   Причина: Найденный путь не является файлом, а является папкой.")
+    sys.exit(1) # Выход из программы
+print("3. ✅ Результат: Найденный путь является файлом.")
 
-# --- بررسی مرحله ۳: آیا فایل قابل خواندن و دارای محتوا است؟ ---
+# --- Проверка шага 3: Является ли файл читаемым и содержит ли данные? ---
 try:
     content = env_path.read_text(encoding='utf-8')
     if not content.strip():
-        print("\n4. ❌ نتیجه: ناموفق!")
-        print("   علت: فایل .env خالی است.")
-        sys.exit(1) # خروج از برنامه
-    print("4. ✅ نتیجه: فایل .env قابل خواندن و دارای محتوا است.")
-    print("\n--- محتوای خوانده شده از فایل .env ---")
+        print("\n4. ❌ Результат: Неудача!")
+        print("   Причина: Файл .env пуст.")
+        sys.exit(1) # Выход из программы
+    print("4. ✅ Результат: Файл .env читаем и содержит данные.")
+    print("\n--- Содержимое, прочитанное из файла .env ---")
     print(content)
     print("--------------------------------------\n")
 except Exception as e:
-    print(f"\n4. ❌ نتیجه: ناموفق!")
-    print(f"   علت: هنگام خواندن فایل خطایی رخ داد: {e}")
-    print("   راه‌حل: دسترسی‌های فایل (Permissions) را بررسی کنید. همچنین مطمئن شوید فایل با انکودینگ UTF-8 ذخیره شده است.")
-    sys.exit(1) # خروج از برنامه
+    print(f"\n4. ❌ Результат: Неудача!")
+    print(f"   Причина: Произошла ошибка при чтении файла: {e}")
+    print("   Решение: Проверьте права доступа к файлу (Permissions). Также убедитесь, что файл сохранён в кодировке UTF-8.")
+    sys.exit(1) # Выход из программы
 
 # =============================================================================
-# SECTION: بارگذاری و پردازش متغیرها
+# SECTION: Загрузка и обработка переменных
 # =============================================================================
-# حالا که از وجود فایل مطمئن هستیم، آن را بارگذاری می‌کنیم
+# Теперь, когда мы уверены в наличии файла, загружаем его
 load_dotenv(dotenv_path=env_path, override=True)
 
+print("✅ Переменные из файла .env загружены. Обработка...")
 
-print("✅ متغیرها از فایل .env بارگذاری شدند. در حال پردازش...")
+# Настройки Telegram-бота
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-# تنظیمات ربات تلگرام
-BOT_TOKEN = os.getenv("BOT_TOKEN_ALAMOR")
-
-# کد هوشمند و مقاوم برای خواندن آیدی ادمین‌ها
-admin_ids_str = os.getenv("ADMIN_IDS_ALAMOR", "")
+# Умный и надёжный код для чтения ID администраторов
+admin_ids_str = os.getenv("ADMIN_IDS", "")
 try:
     ADMIN_IDS = [int(s) for s in re.findall(r'\d+', admin_ids_str)]
 except Exception as e:
     print(f"Warning: Could not parse admin IDs from '{admin_ids_str}': {e}")
     ADMIN_IDS = []
 
-# تنظیمات دیتابیس
+# Настройки базы данных
 DB_TYPE = os.getenv("DB_TYPE", "sqlite")
 
 if DB_TYPE == "postgres":
-    # خواندن متغیرهای جدید برای PostgreSQL
+    # Чтение новых переменных для PostgreSQL
     DB_NAME = os.getenv("DB_NAME")
     DB_USER = os.getenv("DB_USER")
     DB_PASSWORD = os.getenv("DB_PASSWORD")
     DB_HOST = os.getenv("DB_HOST", "localhost")
     DB_PORT = os.getenv("DB_PORT", "5432")
-    DATABASE_NAME = None  # برای PostgreSQL استفاده نمی‌شود
+    DATABASE_NAME = None  # Не используется для PostgreSQL
 else:
-    # منطق قدیمی برای SQLite (برای سازگاری در آینده)
-    DATABASE_NAME = os.getenv("DATABASE_NAME_ALAMOR", "database/alamor_vpn.db")
+    # Старая логика для SQLite (для совместимости в будущем)
+    DATABASE_NAME = os.getenv("DATABASE_NAME", "database/freenet_vpn.db")
     DB_NAME = None
     DB_USER = None
     DB_PASSWORD = None
     DB_HOST = None
     DB_PORT = None
 
-# تنظیمات رمزنگاری
-ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY_ALAMOR")
+# Настройки шифрования
+ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
 
-# بررسی وجود متغیرهای حیاتی
+# Проверка наличия критических переменных
 if not BOT_TOKEN or not ADMIN_IDS or not ENCRYPTION_KEY:
     print("="*60)
-    print("❌ خطای بحرانی: یک یا چند متغیر اصلی (BOT_TOKEN, ADMIN_IDS, ENCRYPTION_KEY) در فایل .env یافت نشد یا مقدار آن خالی است.")
-    print("لطفاً محتوای فایل .env خود را که در بالا چاپ شد، بررسی کنید.")
+    print("❌ Критическая ошибка: Одна или несколько основных переменных (BOT_TOKEN, ADMIN_IDS, ENCRYPTION_KEY) не найдены в файле .env или имеют пустое значение.")
+    print("Пожалуйста, проверьте содержимое файла .env, которое было напечатано выше.")
     print("="*60)
     sys.exit(1)
 
-print(f"✅ ادمین‌های شناسایی شده: {ADMIN_IDS}")
+print(f"✅ Обнаруженные администраторы: {ADMIN_IDS}")
 
-# --- تنظیمات اختیاری ---
-SUPPORT_CHANNEL_LINK = os.getenv("SUPPORT_CHANNEL_LINK_ALAMOR", "https://t.me/YourSupportChannel")
-REQUIRED_CHANNEL_ID_STR = os.getenv("REQUIRED_CHANNEL_ID_ALAMOR")
+# --- Дополнительные настройки ---
+SUPPORT_CHANNEL_LINK = os.getenv("SUPPORT_CHANNEL_LINK", "https://t.me/YourSupportChannel")
+REQUIRED_CHANNEL_ID_STR = os.getenv("REQUIRED_CHANNEL_ID")
 REQUIRED_CHANNEL_ID = int(REQUIRED_CHANNEL_ID_STR) if REQUIRED_CHANNEL_ID_STR and REQUIRED_CHANNEL_ID_STR.lstrip('-').isdigit() else None
-REQUIRED_CHANNEL_LINK = os.getenv("REQUIRED_CHANNEL_LINK_ALAMOR", "https://t.me/YourChannelLink")
+REQUIRED_CHANNEL_LINK = os.getenv("REQUIRED_CHANNEL_LINK", "https://t.me/YourChannelLink")
 MAX_API_RETRIES = 3
-# تنظیمات درگاه پرداخت
+# Настройки платёжного шлюза
 WEBHOOK_DOMAIN = os.getenv("WEBHOOK_DOMAIN")
 ZARINPAL_MERCHANT_ID = os.getenv("ZARINPAL_MERCHANT_ID")
 ZARINPAL_SANDBOX = os.getenv("ZARINPAL_SANDBOX", "False").lower() in ['true', '1', 't']
-BOT_USERNAME_ALAMOR = os.getenv("BOT_USERNAME_ALAMOR", "YourBotUsername")
+BOT_USERNAME = os.getenv("BOT_USERNAME", "YourBotUsername")

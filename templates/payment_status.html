@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>وضعیت تراکنش</title>
+    <title>Статус транзакции</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
         body {
@@ -69,18 +69,18 @@
     <div class="container {% if status == 'success' %}success{% else %}error{% endif %}">
         {% if status == 'success' %}
             <div class="icon">✅</div>
-            <h1>پرداخت موفقیت‌آمیز بود!</h1>
-            <p>سرویس شما با موفقیت فعال شد. لطفاً به ربات تلگرام بازگردید تا اطلاعات کانفیگ خود را دریافت کنید.</p>
+            <h1>Платёж успешно выполнен!</h1>
+            <p>Ваша услуга успешно активирована. Пожалуйста, вернитесь в Telegram-бот, чтобы получить информацию о конфигурации.</p>
             {% if ref_id %}
-                <p>شماره پیگیری شما:</p>
+                <p>Ваш номер отслеживания:</p>
                 <div class="ref-id">{{ ref_id }}</div>
             {% endif %}
         {% else %}
             <div class="icon">❌</div>
-            <h1>پرداخت ناموفق بود!</h1>
+            <h1>Платёж не выполнен!</h1>
             <p>{{ message }}</p>
         {% endif %}
-        <a href="https://t.me/{{ bot_username }}" class="button">بازگشت به ربات</a>
+        <a href="https://t.me/{{ bot_username }}" class="button">Вернуться в бот</a>
     </div>
 </body>
 </html> 
