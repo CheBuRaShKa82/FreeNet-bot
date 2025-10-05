@@ -1,8 +1,5 @@
 # 🚀 AlamorVPN Bot – Полная автоматизация VPN-бизнеса
 
-[![Telegram Channel](https://img.shields.io/badge/Telegram-Channel-blue?logo=telegram)](https://t.me/Alamor_Network)  
-[![License](https://img.shields.io/badge/License-MIT-green)](#license)
-
 **AlamorVPN Bot** — мощный и модульный Telegram-бот для продавцов и администраторов VPN-сервисов (X-UI/3X-UI). Полностью автоматизирует управление сервером, продажу подписок и обработку платежей через Telegram.  
 
 **Примечание:** Для вопросов, предложений или багов: [https://t.me/Alamor_Network](https://t.me/Alamor_Network)
